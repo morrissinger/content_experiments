@@ -33,8 +33,18 @@ function content_experiments_form_alter(&$form, &$form_state, $form_id) {
 }
 
 /**
- * Implements hook_page_alter().
+ * Implements hook_html_head_alter().
  */
+function content_experiments_html_head_alter(&$head_elements) {
+	$head_elements['content_experiments_add_code'] = array(
+		'#type' => 'html_tag',
+		'#tag' => 'script',
+		'#value' => content_experiments_code(),
+	);
+
+//	d($head_elements);
+}
+
 function content_experiments_code() {
 	$code = "";
 
