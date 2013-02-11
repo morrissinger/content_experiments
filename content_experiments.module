@@ -27,7 +27,7 @@ function content_experiments_form_alter(&$form, &$form_state, $form_id) {
 			'code' => array(
 				'#type' => 'textfield',
 				'#title' => t('Experiment ID'),
-				'#default_value' => $node->content_experiments,
+				'#default_value' => property_exists($node, 'content_experiments') ? $node->content_experiments : '',
 				'#description' => t('The experiment ID comes from Google Analytics. It should appear under the code that Google Analytics instructs you to paste immediately after the opening of the &lt;head&gt; tag.'),
 			),
 		);
