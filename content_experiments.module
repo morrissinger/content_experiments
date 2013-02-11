@@ -22,11 +22,13 @@ function content_experiments_form_alter(&$form, &$form_state, $form_id) {
 				),
 			),
 			'#title' => t('Content experiments'),
+			'#description' => t('If this page is a control page for an experiment in Google Content Experiments, set the experiment ID ' .
+					    'below. This will allow the control page to pass tests when you set it up with Google.'),
 			'code' => array(
-				'#type' => 'textarea',
-				'#title' => t('Experiment code'),
+				'#type' => 'textfield',
+				'#title' => t('Experiment ID'),
 				'#default_value' => $node->content_experiments,
-				'#description' => t('This experiment code comes from Google Analytics. This is the code Google Analytics instructs you to paste immediately after the opening of the &lt;head&gt; tag.'),
+				'#description' => t('The experiment ID comes from Google Analytics. It should appear under the code that Google Analytics instructs you to paste immediately after the opening of the &lt;head&gt; tag.'),
 			),
 		);
 	}
@@ -36,13 +38,30 @@ function content_experiments_form_alter(&$form, &$form_state, $form_id) {
  * Implements hook_html_head_alter().
  */
 function content_experiments_html_head_alter(&$head_elements) {
-	$head_elements['content_experiments_add_code'] = array(
-		'#type' => 'html_tag',
-		'#tag' => 'script',
-		'#value' => content_experiments_code(),
-	);
 
-//	d($head_elements);
+	$inline_code[0] =	
+
+"\r\n<script>function utmx_section(){}function utmx(){}(function(){var\r\n" .
+"k='".content_experiments_code()."',d=document,l=d.location,c=d.cookie;\r\n" .
+"if(l.search.indexOf('utm_expid='+k)>0)return;\r\n" .
+"function f(n){if(c){var i=c.indexOf(n+'=');if(i>-1){var j=c.\r\n" .
+"indexOf(';',i);return escape(c.substring(i+n.length+1,j<0?c.\r\n" .
+"length:j))}}}var x=f('__utmx'),xx=f('__utmxx'),h=l.hash;d.write(\r\n" .
+"'<sc'+'ript src=\"'+'http'+(l.protocol=='https:'?'s://ssl':\r\n" .
+"'://www')+'.google-analytics.com/ga_exp.js?'+'utmxkey='+k+\r\n" .
+"'&utmx='+(x?x:'')+'&utmxx='+(xx?xx:'')+'&utmxtime='+new Date().\r\n" .
+"valueOf()+(h?'&utmxhash='+escape(h.substr(1)):'')+\r\n" .
+"'\" type=\"text/javascript\" charset=\"utf-8\"><\/sc'+'ript>')})();\r\n" .
+"</script><script>utmx('url','A/B');</script>\r\n";
+
+	foreach ($inline_code as $key => $block) {
+		$head_elements['content_experiments_add_code_block_'.$key] = array(
+			'#type' => 'html_tag',
+			'#tag' => '!--Google Analytics Content Experiments code--',
+			'#value' => $block
+		);
+	}
+
 }
 
 function content_experiments_code() {
@@ -80,7 +99,7 @@ function content_experiments_node_load($nodes, $types) {
  */
 function content_experiments_node_form_submit($form, &$form_state) {
 	$nid = $form['nid']['#value'];
-	$code = $form['content_experiments']['code']['#value'];
+	$code = check_plain($form['content_experiments']['code']['#value']);
 
 	if (!_content_experiments_experiment_exists($nid)) {
 		db_insert('content_experiments')
