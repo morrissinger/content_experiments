@@ -7,10 +7,11 @@ is that it does what is to be expected, most of the time, and that known bugs ca
 frustration for users, but there are known workarounds. It also means that the user
 interface is extremely minimal and is limited.
 
-In short, this module allows users to insert Google Content Experiments code into their
-sites, which appears in the header of the page in the appropriate place. A user should
-simply paste the code provided by Google Content Experiments into the box on the node
-edit form for the node consisting of the control page.
+In short, this module allows users to insert Google Content Experiments IDS into their
+sites, which generate valid Google Content Experiments JavaScript in the header of the
+pages in the appropriate place. A user should simply paste the Experiment ID provided by
+Google Content Experiments into the box on the node edit form for the node consisting of
+the control page.
 
 Once the module is enabled, the user can navigate to the node edit form for any existing
 node or for any new node the user wishes to create, and scroll to the bottom and paste
