@@ -1,0 +1,24 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function content_experiments_schema() {
+	$schema['content_experiments'] = array(
+		'description' => 'The content experiments code table.', 
+		'fields' => array(
+			'nid' => array(
+				'description' => 'The primary identifier for a node.', 
+				'type' => 'serial', 
+				'unsigned' => TRUE, 
+				'not null' => TRUE,
+			), 
+			'code' => array(
+				'description' => 'The title of this node, always treated as non-markup plain text.', 
+				'type' => 'text', 
+			),
+		),
+		'primary key' => array('nid'),
+	);
+	return $schema;
+}

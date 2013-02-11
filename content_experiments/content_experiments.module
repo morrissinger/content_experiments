@@ -1,0 +1,125 @@
+<?php
+/* @file Google Content Experiments module. Allows inserting Google Content
+ * Experiments code into the header for any page view.
+ */
+
+/**
+ * Implements hook_form_alter().
+ */
+function content_experiments_form_alter(&$form, &$form_state, $form_id) {
+	if (substr($form_id, -9) == 'node_form') {
+		$node = $form['#node'];
+		$form['actions']['submit']['#submit'][] = 'content_experiments_node_form_submit';
+		$form['content_experiments'] = array(
+			'#type' => 'fieldset',
+			'#collapsible' => 1,
+			'#collapsed' => 1,
+			'#group' => 'additional_settings',
+			'#access' => true,
+			'#attributes' => array(
+				'class' => array(
+					'node-form-content-experiments',
+				),
+			),
+			'#title' => t('Content experiments'),
+			'code' => array(
+				'#type' => 'textarea',
+				'#title' => t('Experiment code'),
+				'#default_value' => $node->content_experiments,
+				'#description' => t('This experiment code comes from Google Analytics. This is the code Google Analytics instructs you to paste immediately after the opening of the &lt;head&gt; tag.'),
+			),
+		);
+	}
+}
+
+/**
+ * Implements hook_page_alter().
+ */
+function content_experiments_code() {
+	$code = "";
+
+	$q = check_plain($_GET['q']);
+	$q = explode('/', $q);
+	if (count($q) != 2) {
+		return "";
+	}
+	if (array_shift($q) == 'node') {
+		$nid = intval(array_shift($q));
+	
+		$node = node_load($nid);
+		if ($node) {
+			$code = $node->content_experiments;
+		}
+	}
+
+	return $code;
+}
+
+/**
+ * Implements hook_node_load().
+ */
+function content_experiments_node_load($nodes, $types) {
+	foreach ($nodes as $nid => $node) {
+		$code = _content_experiments_get_code($node->nid);
+		$node->content_experiments = $code;
+	}
+}
+
+/**
+ * Helper function for setting experiment code on node submission.
+ */
+function content_experiments_node_form_submit($form, &$form_state) {
+	$nid = $form['nid']['#value'];
+	$code = $form['content_experiments']['code']['#value'];
+
+	if (!_content_experiments_experiment_exists($nid)) {
+		db_insert('content_experiments')
+		->fields(array(
+			'nid' => $nid,
+			'code' => $code,
+		))
+		->execute();
+	} else {
+		db_update('content_experiments')
+			->fields(array('code' => $code))
+			->condition('nid', $nid,'=')
+			->execute();
+	}
+}
+
+/**
+ * Check to see if a content experiment exists.
+ */
+function _content_experiments_experiment_exists($nid) {
+	return _content_experiments_get_experiment($nid) != array();
+}
+
+/**
+ * Get content experiment.
+ */
+function _content_experiments_get_experiment($nid) {
+	$result = db_select('content_experiments', 'ce')
+    		->fields('ce', array('code'))
+    		->condition('nid', $nid,'=')
+    		->execute()
+		->fetchAssoc();
+	return $result;
+}
+
+/**
+ * Helper function to get the content experiment code.
+ */
+function _content_experiments_get_code($nid) {
+	$code = '';
+	$result = _content_experiments_get_experiment($nid);
+	$code = $result['code'];
+	return $code;
+}
+
+
+function d($array) {
+	print "<pre>";
+	print_r($array);
+	print "</pre>";
+	die();
+}
