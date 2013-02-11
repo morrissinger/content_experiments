@@ -94,23 +94,24 @@ function content_experiments_node_load($nodes, $types) {
 	}
 }
 
+
 /**
  * Helper function for setting experiment code on node submission.
  */
 function content_experiments_node_form_submit($form, &$form_state) {
-	$nid = $form['nid']['#value'];
-	$code = check_plain($form['content_experiments']['code']['#value']);
+	$experiment_id = $form_state['build_info']['args'][0]->code;
+	$nid = $form_state['build_info']['args'][0]->nid;
 
 	if (!_content_experiments_experiment_exists($nid)) {
 		db_insert('content_experiments')
 		->fields(array(
 			'nid' => $nid,
-			'code' => $code,
+			'code' => $experiment_id,
 		))
 		->execute();
 	} else {
 		db_update('content_experiments')
-			->fields(array('code' => $code))
+			->fields(array('code' => $experiment_id))
 			->condition('nid', $nid,'=')
 			->execute();
 	}
